@@ -1,0 +1,23 @@
+@startuml
+
+!include <C4/C4_Component.puml>
+
+title ООО «Кинобездна» - Диаграмма компонентов - Проектируемая система
+
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+
+System_Boundary(monolith, "«Кинобездна»") {
+    Container(kino, "«Кинобездна»", "микросервисное ядро системы")
+    Container_Boundary(recommendation_gate, "Шлюз рекомендаций") {
+        Component(recommendation_gate.service, "Микросервис рекомендаций")
+        ComponentDb(recommendation_gate.db, "База данных рекомендаций", "PostgreSQL")
+    }
+}
+System_Ext(recommendation, "Рекомендательная система", "")
+
+Rel(kino, recommendation_gate.service, "использует", "REST")
+Rel(recommendation_gate.service, recommendation, "использует", "AMQP")
+Rel(recommendation_gate.service, recommendation_gate.db, "хранит рекомендации", "SQL")
+
+@enduml

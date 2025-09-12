@@ -1,0 +1,32 @@
+@startuml
+
+!include <C4/C4_Component.puml>
+
+title ООО «Кинобездна» - Диаграмма компонентов - Проектируемая система
+
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+
+System_Boundary(monolith, "«Кинобездна»") {
+    Container(kino, "«Кинобездна»", "микросервисное ядро системы")
+    Container_Boundary(payment_gate, "Шлюз платежей") {
+        Component(payment_gate.service, "Микросервис платежей")
+        ComponentDb(payment_gate.db, "База данных платежей", "PostgreSQL")
+        Component(payment_gate.payment_protocol1, "Адаптер протокола 1")
+        Component(payment_gate.payment_protocol2, "Адаптер протокола 2")
+    }
+}
+System_Ext(payment1, "МИР")
+System_Ext(payment2, "СБП")
+System_Ext(payment3, "QIWI")
+
+Rel(kino, payment_gate.service, "использует", "REST")
+Rel_L(payment_gate.service, payment_gate.db, "хранит транзакции", "SQL")
+Rel(payment_gate.service, payment_gate.payment_protocol1, "использует", "REST")
+Rel(payment_gate.service, payment_gate.payment_protocol2, "использует", "REST")
+
+Rel(payment_gate.payment_protocol1, payment1, "использует", "Протокол 1")
+Rel(payment_gate.payment_protocol2, payment2, "использует", "Протокол 2")
+Rel(payment_gate.payment_protocol2, payment3, "использует", "Протокол 2")
+
+@enduml

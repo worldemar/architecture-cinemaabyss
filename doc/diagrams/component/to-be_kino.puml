@@ -1,0 +1,68 @@
+@startuml
+
+!include <C4/C4_Component.puml>
+
+title ООО «Кинобездна» - Диаграмма контейнеров - Проектируемая система
+
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+
+Boundary(apps, "приложения") {
+    Container(mobile_app, "Мобильное приложение", "iOS/Android")
+    Container(web_app, "Веб-портал", "React/Vue/Angular")
+    Container(smart_tv_app, "Приложение для Смарт-ТВ", "Kotlin/Java/Swift")
+}
+Container_Boundary(kino, "«Кинобездна»", "микросервисное ядро системы") {
+    Component(kino.api_gateway, "API Router", "маршрутизация между новой и старой системой")
+    Component(kino.bff_mobile, "BFF для смартфонов")
+    Component(kino.bff_web, "BFF для веб-портала")
+    Component(kino.bff_tv, "BFF для Смарт-ТВ")
+    Component(kino.watch, "Сервис просмотра")
+    Component(kino.users, "Сервис пользователей")
+    Component(kino.movies, "Сервис метаданных фильмов")
+    Component(kino.subscriptions, "Сервис подписок")
+
+}
+Container(recommendation_gate, "Шлюз рекомендаций", "инкапсулирует работу с внешним сервисом")
+Container(payment_gate, "Шлюз платежей", "инкапсулирует работу с внешним сервисом")
+Container(theaters_gate, "Шлюз кинотеатров", "инкапсулирует работу с внешним сервисом")
+Container(cdn, "CDN", "CloudFront или аналог")
+
+System(monolith, "«Кинобездна»", "Монолитная система", "context/as-is.puml")
+
+Rel(mobile_app, kino.api_gateway, "Использует")
+Rel(web_app, kino.api_gateway, "Использует")
+Rel(smart_tv_app, kino.api_gateway, "Использует")
+Rel_R(kino.api_gateway, monolith, "пробрасывает легаси-запросы", "REST")
+
+Rel_D(kino.api_gateway, kino.bff_mobile, "Использует")
+Rel_D(kino.api_gateway, kino.bff_web, "Использует")
+Rel_D(kino.api_gateway, kino.bff_tv, "Использует")
+
+Rel(apps, cdn, "скачивают статику", "HTTP/HLS/RTP")
+
+Rel(kino.bff_mobile, kino.watch, "Использует", "REST")
+Rel(kino.bff_web, kino.watch, "Использует", "REST")
+Rel(kino.bff_tv, kino.watch, "Использует", "REST")
+Rel(kino.bff_mobile, kino.users, "Использует", "REST")
+Rel(kino.bff_web, kino.users, "Использует", "REST")
+Rel(kino.bff_tv, kino.users, "Использует", "REST")
+Rel(kino.bff_mobile, kino.movies, "Использует", "REST")
+Rel(kino.bff_web, kino.movies, "Использует", "REST")
+Rel(kino.bff_tv, kino.movies, "Использует", "REST")
+Rel(kino.bff_mobile, kino.subscriptions, "Использует", "REST")
+Rel(kino.bff_web, kino.subscriptions, "Использует", "REST")
+Rel(kino.bff_tv, kino.subscriptions, "Использует", "REST")
+Rel(kino.bff_mobile, recommendation_gate, "Использует", "REST")
+Rel(kino.bff_web, recommendation_gate, "Использует", "REST")
+Rel(kino.bff_tv, recommendation_gate, "Использует", "REST")
+Rel(kino.bff_mobile, payment_gate, "Использует", "REST")
+Rel(kino.bff_web, payment_gate, "Использует", "REST")
+Rel(kino.bff_tv, payment_gate, "Использует", "REST")
+Rel(kino.bff_mobile, theaters_gate, "Использует", "REST")
+Rel(kino.bff_web, theaters_gate, "Использует", "REST")
+Rel(kino.bff_tv, theaters_gate, "Использует", "REST")
+
+Rel(kino.watch, cdn, "генерирует токен")
+
+@enduml

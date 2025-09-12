@@ -1,11 +1,30 @@
 ## Изучите [README.md](.\README.md) файл и структуру проекта.
 
+# Вводные
+
+- Система - аггрегатор онлайн-кинотеатров
+  - подразумеваем, что сам стриминг мы не предоставляем, создаём плееры на сторонние сервисы вещания, т.е. HLS/RTSP реализовывать не нужно.
+- Клиенты сервиса используют мобильные устройства, ноутбуки, смарт ТВ
+  - подразумеваем, что понадобится несколько разных UI
+- Сторонняя рекомендательная система
+  - подразумеваем, что думать о реализации рекомендаций не нужно
+
 # Задание 1
 
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
+
+- [Диаграмма контекста как-есть](doc/diagrams/context/as-is.puml)
+- [Диаграмма сущностей и отношений](doc/diagrams/er.puml)
+
+- [Диаграмма контейнеров как-будет](doc/diagrams/container/to-be.puml)
+- Диаграммы компонентов как-будет
+  - [микросервисное ядро kino](doc/diagrams/component/to-be_kino.puml)
+  - [микросервис/шлюз платежей](doc/diagrams/component/to-be_payment_gate.puml)
+  - [микросервис/шлюз рекомендаций](doc/diagrams/component/to-be_recommendation_gate.puml)
+  - [микросервис/шлюз кинотеатров](doc/diagrams/component/to-be_theater_gate.puml)
+  - [CDN](doc/diagrams/component/to-be_cdn.puml)
 
 # Задание 2
 
@@ -14,6 +33,8 @@
 
 
 Реализуйте сервис на любом языке программирования в ./src/microservices/proxy.
+- [microservices/proxy](./src/microservices/proxy/main.py)
+
 Конфигурация для запуска сервиса через docker-compose уже добавлена
 ```yaml
   proxy-service:
@@ -40,11 +61,14 @@
 ```
 
 - После реализации запустите postman тесты - они все должны быть зеленые (кроме events).
+
 - Отправьте запросы к API Gateway:
    ```bash
    curl http://localhost:8000/api/movies
    ```
+   ![curl](screenshots/curl-to-proxy.png)
 - Протестируйте постепенный переход, изменив переменную окружения MOVIES_MIGRATION_PERCENT в файле docker-compose.yml.
+   ![proxy 20% migration](screenshots/proxy-20-percent-migration.png)
 
 
 ### 2. Kafka
@@ -52,12 +76,22 @@
 
 Для этого нужно сделать MVP сервис events, который будет при вызове API создавать и сам же читать сообщения в топике Kafka.
 
-    - Разработайте сервис на любом языке программирования с consumer'ами и producer'ами.
-    - Реализуйте простой API, при вызове которого будут создаваться события User/Payment/Movie и обрабатываться внутри сервиса с записью в лог
-    - Добавьте в docker-compose новый сервис, kafka там уже есть
+- Разработайте сервис на любом языке программирования с consumer'ами и producer'ами.
+  - [microservices/events](./src/microservices/events/main.py)
+- Реализуйте простой API, при вызове которого будут создаваться события User/Payment/Movie и обрабатываться внутри сервиса с записью в лог
+  - ![events produced and consumed](screenshots/events-produced-and-consumed.png)
+- Добавьте в docker-compose новый сервис, kafka там уже есть
+  - [docker-compose.yml](./docker-compose.yml)
 
-Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
-Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
+Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman.
+- Тесты запущены командой
+  ```
+  docker build -t cinemaabyss-api-tests .
+  docker run --rm --network=cinemaabyss-network -v %CD%/reports:/app/reports cinemaabyss-api-tests
+  ```
+Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090
+- ![test result](screenshots/postman-test-output.png)
+- ![kafka ui](screenshots/kafka-ui.png)
 
 # Задание 3
 
@@ -109,6 +143,9 @@ jobs:
 Как только сборка отработает и в github registry появятся ваши образы, можно переходить к блоку настройки Kubernetes
 Успешным результатом данного шага является "зеленая" сборка и "зеленые" тесты
 
+- ![pr check](screenshots/pr-checks-passed.png)
+- ![proxy package](screenshots/proxy-service-package.png)
+- ![events package](screenshots/events-service-package.png)
 
 ### Proxy в Kubernetes
 
@@ -274,6 +311,8 @@ cat .docker/config.json | base64
 
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
+- ![movies](screenshots/curl-movies.png)
+- ![kubernetes test results](screenshots/postman-test-output-kubernetes.png)
 
 
 # Задание 4
@@ -349,6 +388,11 @@ minikube tunnel
 Потом вызовите 
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+
+- Демонстрация запроса
+  ![helm](screenshots/helm-deployment.png)
+- Миграция 50%
+  ![helm 50% migration](screenshots/helm-deployment-50-percent.png)
 
 ## Удаляем все
 

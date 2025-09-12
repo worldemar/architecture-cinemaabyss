@@ -1,0 +1,35 @@
+@startuml
+
+!include <C4/C4_Component.puml>
+
+title ООО «Кинобездна» - Диаграмма компонентов - Проектируемая система
+
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+
+System_Boundary(monolith, "«Кинобездна»") {
+    Container(kino, "«Кинобездна»", "микросервисное ядро системы")
+    Container_Boundary(theaters_gate, "Шлюз кинотеатров") {
+        Component(theaters_gate.service, "Микросервис агрегации внешних метаданных")
+        ComponentDb(theaters_gate.db, "База метаданных", "PostgreSQL")
+        Component(theaters_gate.protocol1, "Адаптер протокола 1", "JSON")
+        Component(theaters_gate.protocol2, "Адаптер протокола 2", "XML")
+    }
+}
+System_Ext(theater1, "Смотрим", "")
+System_Ext(theater2, "Wink", "")
+System_Ext(theater3, "Кинопоиск", "")
+System_Ext(theater4, "Kion", "")
+System_Ext(theater5, "Okko", "")
+
+Rel(kino, theaters_gate.service, "использует", "REST")
+Rel_L(theaters_gate.service, theaters_gate.db, "хранит метаданные о фильмах", "SQL")
+Rel(theaters_gate.service, theaters_gate.protocol1, "использует", "REST")
+Rel(theaters_gate.service, theaters_gate.protocol2, "использует", "REST")
+Rel(theaters_gate.protocol1, theater1, "получает метаданные", "JSON")
+Rel(theaters_gate.protocol2, theater2, "получает метаданные", "XML")
+Rel(theaters_gate.protocol1, theater3, "получает метаданные", "JSON")
+Rel(theaters_gate.protocol2, theater4, "получает метаданные", "XML")
+Rel(theaters_gate.protocol1, theater5, "получает метаданные", "JSON")
+
+@enduml
