@@ -1,0 +1,84 @@
+@startuml
+
+Entity "User" {
+  * id : integer <<generated>>
+  --
+  * username : string
+  * email : string
+  * password_hash : string
+  * created_at : datetime <<generated>>
+  * updated_at : datetime <<generated>>
+}
+
+Entity "Movie" {
+  * id : integer <<generated>>
+  --
+  * title : string <<INDEX>>
+  * description : text
+  * rating : decimal(3,1)
+  * release_date : date
+  * duration : integer
+  * poster_url : string
+  * created_at : datetime <<generated>>
+  * updated_at : datetime <<generated>>
+}
+
+Entity "MovieGenre" {
+  * movie_id : integer <<FK>>
+  * genre : string
+  --
+}
+
+Entity "Payment" {
+  * id : integer <<generated>>
+  --
+  * user_id : integer <<FK>> <<INDEX>>
+  * amount : decimal(10,2)
+  * timestamp : datetime <<generated>>
+  * status : string
+  * payment_method : string
+  * transaction_id : string
+}
+
+Entity "Subscription" {
+  * id : integer <<generated>>
+  --
+  * user_id : integer <<FK>> <<INDEX>>
+  * plan_type : string
+  * start_date : datetime
+  * end_date : datetime
+  * auto_renew : boolean
+  * created_at : datetime <<generated>>
+  * updated_at : datetime <<generated>>
+}
+
+Entity "View" {
+  * id : integer <<generated>>
+  --
+  * user_id : integer <<FK>> <<INDEX>>
+  * movie_id : integer <<FK>> <<INDEX>>
+  * view_date : datetime <<generated>>
+  * duration : integer
+  * completed : boolean
+}
+
+Entity "UserRating" {
+  * user_id : integer <<FK>>
+  * movie_id : integer <<FK>>
+  --
+  * rating : integer
+  * review : text
+  * created_at : datetime <<generated>>
+}
+
+' Relationships
+User ||--o{ Payment : "has payments"
+User ||--o{ Subscription : "has subscriptions"
+User ||--o{ View : "has views"
+User ||--o{ UserRating : "has ratings"
+
+Movie ||--o{ View : "is viewed"
+Movie ||--o{ UserRating : "is rated"
+Movie ||--o{ MovieGenre : "has genres"
+
+@enduml

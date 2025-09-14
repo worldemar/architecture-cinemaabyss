@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Context.puml>
+
+title ООО «Кинобездна» - Диаграмма контекстов - текущая система
+
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+
+Person_Ext(user, "Пользователь", "Смартфон / ПК / Смарт-ТВ")
+System_Ext(payment, "Платёжная система", "API для работы с платежами")
+System(monolith, "«Кинобездна»", "Монолитная система")
+System_Ext(recommendation, "Рекомендательная система", "")
+System_Ext(streamers, "Онлайн кинотеатры", "")
+' База данных - часть монолита, поэтому её тут не показываем
+' System(db, "База данных", "PostgreSQL")
+System_Ext(s3, "Облачное хранилище", "S3")
+
+Rel_D(user, monolith, "использует")
+Rel_L(monolith, payment, "использует")
+Rel_R(monolith, recommendation, "использует", "RabbbitMQ")
+Rel_D(monolith, streamers, "использует")
+Rel_D(monolith, s3, "хранит файлы")
+
+@enduml

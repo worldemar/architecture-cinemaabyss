@@ -1,0 +1,32 @@
+@startuml
+
+!include <C4/C4_Component.puml>
+
+title ООО «Кинобездна» - Диаграмма компонентов - Проектируемая система
+
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+' LAYOUT_LEFT_RIGHT()
+
+System_Boundary(monolith, "«Кинобездна»") {
+    Container(kino, "«Кинобездна»", "микросервисное ядро системы")
+    Container_Boundary(cdn, "CDN") {
+        ComponentQueue(cdn.token_store, "Кэш токенов", "Redis/memcache")
+        Component(cdn.service, "Шлюз CDN", "производительный http-сервер")
+    }
+}
+System_Ext(s3, "Облачное хранилище", "S3")
+
+Boundary(apps, "приложения") {
+    Container(mobile_app, "Мобильное приложение", "iOS/Android")
+    Container(web_app, "Веб-портал", "React/Vue/Angular")
+    Container(smart_tv_app, "Приложение для Смарт-ТВ", "Kotlin/Java/Swift")
+}
+
+
+Rel_D(kino, cdn.token_store, "обновляет временные токены/ссылки")
+Rel_U(cdn.service, cdn.token_store, "авторизует запросы")
+Rel_L(cdn.service, s3, "получает файлы")
+Rel(apps, cdn.service, "обращаются за статическими файлами по одноразовой ссылке/токену")
+
+@enduml

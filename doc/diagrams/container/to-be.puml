@@ -1,0 +1,57 @@
+@startuml
+
+!include <C4/C4_Container.puml>
+
+title ООО «Кинобездна» - Диаграмма контейнеров - Проектируемая система
+
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+
+Person_Ext(userm, "Пользователь", "Смартфон 📱")
+Person_Ext(userl, "Пользователь", "ПК 💻")
+Person_Ext(usert, "Пользователь", "Смарт-ТВ 📺")
+Boundary(apps, "приложения") {
+    Container(mobile_app, "Мобильное приложение", "iOS/Android")
+    Container(web_app, "Веб-портал", "React/Vue/Angular")
+    Container(smart_tv_app, "Приложение для Смарт-ТВ", "Kotlin/Java/Swift")
+}
+System_Boundary(system, "«Кинобездна»") {
+    Container(kino, "«Кинобездна»", "микросервисное ядро системы")
+    Container(recommendation_gate, "Шлюз рекомендаций", "инкапсулирует работу с внешним сервисом")
+    Container(payment_gate, "Шлюз платежей", "инкапсулирует работу с внешним сервисом")
+    Container(theaters_gate, "Шлюз кинотеатров", "инкапсулирует работу с внешним сервисом")
+    Container(cdn, "CDN", "CloudFront или аналог")
+}
+System(monolith, "«Кинобездна»", "Монолитная система", "context/as-is.puml")
+System_Ext(recommendation, "Рекомендательная система", "")
+System_Ext(theaters, "Онлайн кинотеатры", "")
+System_Ext(payment, "Платёжная система", "API для работы с платежами")
+' База данных - часть монолита, поэтому её тут не показываем
+' System(db, "База данных", "PostgreSQL")
+System_Ext(s3, "Облачное хранилище", "S3")
+
+Rel(userm, mobile_app, "Использует")
+Rel(userl, web_app, "Использует")
+Rel(usert, smart_tv_app, "Использует")
+
+Rel(mobile_app, kino, "Использует")
+Rel(web_app, kino, "Использует")
+Rel(smart_tv_app, kino, "Использует")\
+
+Rel(apps, cdn, "скачивают статику", "HTTP/HLS/RTP")
+Rel_L(cdn, s3, "Хранит\nфайлы", "S3")
+
+Rel(kino, recommendation_gate, "Использует", "REST")
+Rel(recommendation_gate, recommendation, "Использует", "AMQP")
+
+Rel(kino, payment_gate, "Использует", "REST")
+Rel(payment_gate, payment, "Использует", "HTTP")
+
+Rel(kino, theaters_gate, "Использует", "REST")
+Rel(theaters_gate, theaters, "Использует", "HTTP")
+
+Rel_R(kino, cdn, "Перенаправляет")
+
+Rel_R(kino, monolith, "Маршрутизация легаси-запросов")
+
+@enduml
